@@ -80,18 +80,14 @@ Developed by: www.cliversoft.com";
             //InternetDateTime.CHECK_TEST_PERIOD_VALIDITY(2016, 10, 7);
 
             FileWriter.This.WriteHeader(
-                "Individual Name",
-                    "Company Name",
-                    "City",
-                    "State",
-                    "Site",
-                    "Phone",
-                    "Mobile",
-                    "Fax",
-                    "Url",
-                    "Id"
-                    //"Json"
-                    );
+                "Name",
+                "Company",
+                "City",
+                "State",
+                "Site",
+                "Phone",
+                "Url"
+            );
         }
 
         new static public void SessionClosing()
@@ -122,7 +118,7 @@ Developed by: www.cliversoft.com";
                 //    throw new ProcessorException(ProcessorExceptionType.RESTORE_AS_NEW, "Could not get: " + url);
                 //DataSifter.Capture c = category1.Parse(cb.HR.HtmlResult);
                 //url = c.ValueOf("Url");
-                string url = "http://www.zillow.com/" + City + "-" + State + "/real-estate-agent-reviews/";
+                string url = "http://www.zillow.com/" + City + "-" + State + "/real-estate-agent-reviews/?teamPlayer=False";
                 cb.process_category(url);
             }
         }
@@ -134,19 +130,14 @@ Developed by: www.cliversoft.com";
                 throw new ProcessorException(ProcessorExceptionType.RESTORE_AS_NEW, "Could not get: " + url);
 
             DataSifter.Capture c = category.Parse(HR.HtmlResult);
-            string[] ids = c.ValuesOf("Id");
 
-            Match m = Regex.Match(url, @".*&pageSize=(?'PageSize'\d+)&page=(?'PageNumber'\d+)&");
-            if (!m.Success)
-                throw new Exception("Could not parse page number!");
-            if (ids.Length == int.Parse(m.Groups["PageSize"].Value))
-            {
-                int pn = int.Parse(m.Groups["PageNumber"].Value);
-                BotCycle.Add(new CategoryNextPageItem(Regex.Replace(url, @"&page=\d+&", "&page=" + (pn + 1) + "&")));
-            }
+            string np = c.ValueOf("NextPage");
+            if (np != null)
+                BotCycle.Add(new CategoryNextPageItem(Regex.Replace(url, @"&page=\d+", "") + @"&page=" + int.Parse(np)));
 
-            foreach (string id in ids)
-                BotCycle.Add(new CompanyItem(id));
+            string[] us = Spider.GetAbsoluteUrls(c.ValuesOf("Url"), url, HR.HtmlResult);
+            foreach (string u in us)
+                BotCycle.Add(new CompanyItem(u));
         }
 
         static DataSifter.Parser category = new DataSifter.Parser("category.fltr");
@@ -169,57 +160,29 @@ Developed by: www.cliversoft.com";
 
         public class CompanyItem : InputItem
         {
-            readonly public string LenderId;
+            readonly public string Url;
 
-            public CompanyItem(string lender_id)
+            public CompanyItem(string url)
             {
-                LenderId = lender_id;
+                Url = url;
             }
 
             override public void PROCESSOR(BotCycle bc)
             {
-                //https://mortgageapi.zillow.com/getRegisteredLender?partnerId=RD-CZMBMCZ&amp;fields.0=individualName&amp;fields.1=address&amp;fields.2=cellPhone&amp;fields.3=companyName&amp;fields.4=faxPhone&amp;fields.5=individualName&amp;fields.6=nmlsType&amp;fields.7=officePhone&amp;fields.8=screenName&amp;fields.9=website&amp;lenderRef.lenderId=
-                //https://mortgageapi.zillow.com/getRegisteredLender?partnerId=RD-CZMBMCZ&fields.0=individualName&fields.1=address&fields.2=cellPhone&fields.3=&fields.4=&fields.5=&fields.6=&fields.7=&fields.8=&fields.9=&lenderRef.lenderId=" + WebUtility.UrlEncode(LenderId);
-
                 CustomBot cb = (CustomBot)bc.Bot;
-                string url = "https://mortgageapi.zillow.com/getRegisteredLender?partnerId=RD-CZMBMCZ&fields.0=individualName&fields.1=address&fields.2=cellPhone&fields.3=companyName&fields.4=faxPhone&fields.5=individualName&fields.6=nmlsType&fields.7=officePhone&fields.8=screenName&fields.9=website&lenderRef.lenderId=" + WebUtility.UrlEncode(LenderId);
-                if (!cb.HR.GetPage(url))
-                    throw new ProcessorException(ProcessorExceptionType.RESTORE_AS_NEW, "Could not get: " + url);
+               if (!cb.HR.GetPage(Url))
+                    throw new ProcessorException(ProcessorExceptionType.RESTORE_AS_NEW, "Could not get: " + Url);
 
                 DataSifter.Capture c = CustomBot.company.Parse(cb.HR.HtmlResult);
 
-                string individual_name = "";
-                DataSifter.Capture cp = c.FirstOf("individualName");
-                if (cp != null)
-                    individual_name = cp.ValueOf("firstName") + " " + cp.ValueOf("lastName");
-
-                string mobile = "";
-                cp = c.FirstOf("cellPhone");
-                if (cp != null)
-                    mobile = "(" + cp.ValueOf("areaCode") + ") " + cp.ValueOf("prefix") + "-" + cp.ValueOf("number");
-
-                string phone = "";
-                cp = c.FirstOf("officePhone");
-                if (cp != null)
-                    phone = "(" + cp.ValueOf("areaCode") + ") " + cp.ValueOf("prefix") + "-" + cp.ValueOf("number");
-
-                string fax = "";
-                cp = c.FirstOf("faxPhone");
-                if (cp != null)
-                    fax = "(" + cp.ValueOf("areaCode") + ") " + cp.ValueOf("prefix") + "-" + cp.ValueOf("number");
-
-                FileWriter.This.PrepareAndWriteLineWithHeader(
-                    "Individual Name", individual_name,
-                    "Company Name", c.ValueOf("companyName"),
-                    "City", c.ValueOf("city"),
-                    "State", c.ValueOf("stateAbbreviation"),
-                    "Site", c.ValueOf("website"),
-                    "Phone", phone,
-                    "Mobile", mobile,
-                    "Fax", fax,
-                    "Url", "https://www.zillow.com/lender-profile/" + c.ValueOf("screenName") + "/",
-                    "Id", LenderId
-                    //"Json", url
+                FileWriter.This.PrepareAndWriteHtmlLineWithHeader(
+                    "Name", c.ValueOf("Name"),
+                    "Company", c.ValueOf("Company"),
+                    "City", c.ValueOf("Locality"),
+                    "State", c.ValueOf("Region"),
+                    "Site", c.ValueOf("Website"),
+                    "Phone", c.ValueOf("Phone"),
+                    "Url", Url
                     );
             }
         }

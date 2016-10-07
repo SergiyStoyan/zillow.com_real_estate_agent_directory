@@ -1,0 +1,8 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<!--Filter tree file. Produced by DataSifter3.0, http://www.cliversoft.com-->
+<FilterTree>
+  <Filter type="AgileFilter" version="1.0" input_group="" definition="//p[@class='ldb-contact-name ldb-font-bold']/a&#xA;&#xA;0" comment="">
+    <Filter type="RegexFilter" version="1.0" input_group="0" definition="href=&quot;(?'Url'.*?)&quot;&#xA;IgnoreCase, Compiled, Singleline" comment="" />
+  </Filter>
+  <Filter type="RegexFilter" version="1.0" input_group="" definition="class=&quot;js-pagination&quot;\s+data-idx=&quot;(?'NextPage'\d+)&quot;&gt;Next&#xA;IgnoreCase, Compiled, Singleline" comment="" />
+</FilterTree>

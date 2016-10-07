@@ -1,0 +1,12 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<!--Filter tree file. Produced by DataSifter3.0, http://www.cliversoft.com-->
+<FilterTree>
+  <Filter type="AgileFilter" version="1.0" input_group="" definition="//span[@class=&quot;locality&quot;]&#xA;Locality" comment="" />
+  <Filter type="AgileFilter" version="1.0" input_group="" definition="//span[@class=&quot;region&quot;]&#xA;Region" comment="" />
+  <Filter type="AgileFilter" version="1.0" input_group="" definition="//span[@itemprop=&quot;name&quot;]&#xA;Name" comment="" />
+  <Filter type="RegexFilter" version="1.0" input_group="" definition="&lt;dd\s+class=&quot;zsg-lg-3-5 profile-information-address&quot;&gt;(?'Company'.*?)&lt;br&#xA;IgnoreCase, Compiled, Singleline" comment="" />
+  <Filter type="RegexFilter" version="1.0" input_group="" definition="Phones?:&lt;/dt&gt;(?'Phone'.*?)(?:&lt;dt|&lt;a)&#xA;IgnoreCase, Compiled, Singleline" comment="" />
+  <Filter type="AgileFilter" version="1.0" input_group="" definition="//dd[@class=&quot;zsg-lg-3-5 profile-information-websites&quot;]&#xA;0" comment="">
+    <Filter type="RegexFilter" version="1.0" input_group="0" definition="href=&quot;(?'Website'.*?)&quot;.*&#xA;IgnoreCase, Compiled, Singleline" comment="" />
+  </Filter>
+</FilterTree>
